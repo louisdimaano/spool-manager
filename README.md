@@ -12,6 +12,7 @@ A web app I built to keep track of my 3D printer filament. It shows every spool 
 - Update grams left by weighing the spool (scale reading minus the empty spool weight)
 - Print history saved in the database
 - Works on phones, with light and dark mode
+- Exports in-stock colors as JSON for the public color page on my order form
 
 ## Built With
 
@@ -39,6 +40,17 @@ For 1.75 mm filament, 1 meter of PLA is about 2.98 g. Densities used (g/cm³):
 | TPU      | 1.21    |
 
 A print is **Enough** when the spool has the needed grams plus the safety margin (10% by default), **Tight** when it has enough but not the full margin, and **Not enough** when it falls short.
+
+## Sharing colors with my order form
+
+Customers can see which colors I have before they order, without SpoolManager ever being on the internet.
+
+1. /export/colors.json lists every color I have filament left in, grouped by material, finish, and color. Spools of the same color are combined.
+2. It shows a stock level instead of exact grams: Plenty (500 g or more), Limited (150 to 499 g), or Low (under 150 g).
+3. A script on my home server downloads the export every hour. If any colors changed, it commits the file to the order form repo and pushes it, and GitHub Pages updates the color page.
+
+The script pushes with a deploy key that only has access to the order form repo, and SpoolManager itself stays on my private network.
+
 
 ## Project Structure
 
@@ -101,7 +113,11 @@ The database is stored in `./data`, outside the container, so it survives rebuil
 - Running a Python app in Docker with a volume so the data lives outside the container
 - Reading Python tracebacks to find the exact line and cause of an error
 - Writing automated tests with pytest, which caught a floating point rounding bug at the safety margin boundary
-- Share my in-stock colors with my 3D print order form
+- Returning JSON from Flask, and grouping rows with a dictionary so repeat colors become one entry
+- Choosing what to share publicly: stock levels instead of exact grams, and no prices
+- Automating a task with a shell script and cron, and only committing when the data actually changed
+- Using a deploy key so a server can push to one repo without access to my whole GitHub account
+- Keeping finish separate from material, so a new option didn't break the density math
 
 ## Roadmap
 
