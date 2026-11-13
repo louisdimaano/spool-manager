@@ -21,7 +21,7 @@ def meters_to_grams(meters, material, diameter_mm=1.75):
 
 def check_print(needed_g, remaining_g, margin=0.10):
     """Return 'enough', 'tight', or 'not_enough'."""
-    if remaining_g >= needed_g * (1 + margin):
+    if remaining_g >= round(needed_g * (1 + margin), 2):
         return "enough"
     if remaining_g >= needed_g:
         return "tight"
