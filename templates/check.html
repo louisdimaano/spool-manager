@@ -1,71 +1,69 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Can I Print This? | SpoolManager</title>
-</head>
+{% block title %}Can I Print This? | SpoolManager{% endblock %}
 
-<body>
-    <h1>Can I Print This?</h1>
-    <p><a href="{{ url_for('spool_list') }}">Back to spools</a></p>
+{% block content %}
+<h1>Can I Print This?</h1>
 
-    {% if errors %}
-    <ul>
-        {% for error in errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+{% if errors %}
+<div class="errors">
+    {% for error in errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
 
-    <form method="post">
-        <p><label>Spool<br>
-                <select name="spool_id" required>
-                    {% for s in spools %}
-                    <option value="{{ s.id }}" {% if form.get('spool_id')==s.id|string %}selected{% endif %}>
-                        {{ s.brand }} {{ s.material }} {{ s.color }} ({{ s.remaining_g }} g left)
-                    </option>
-                    {% endfor %}
-                </select></label></p>
+<form method="post" class="card">
+    <p class="field"><label>Spool
+            <select name="spool_id" required>
+                {% for s in spools %}
+                <option value="{{ s.id }}" {% if form.get('spool_id')==s.id|string %}selected{% endif %}>
+                    {{ s.brand }} {{ s.material }} {{ s.color }} ({{ s.remaining_g }} g left)
+                </option>
+                {% endfor %}
+            </select></label></p>
 
-        <p><label>What the slicer says<br>
+    <div class="row">
+        <p class="field"><label>What the slicer says
                 <input type="number" name="amount" min="0" step="any" value="{{ form.get('amount') or '' }}"
-                    required></label>
-            <select name="unit" aria-label="Unit">
-                <option value="g" {% if form.get('unit') !='m' %}selected{% endif %}>grams</option>
-                <option value="m" {% if form.get('unit')=='m' %}selected{% endif %}>meters</option>
-            </select>
-        </p>
+                    required></label></p>
+        <p class="field"><label>Unit
+                <select name="unit">
+                    <option value="g" {% if form.get('unit') !='m' %}selected{% endif %}>grams</option>
+                    <option value="m" {% if form.get('unit')=='m' %}selected{% endif %}>meters</option>
+                </select></label></p>
+    </div>
 
-        <p><label>Safety margin (%)<br>
-                <input type="number" name="margin" min="0" step="1" value="{{ form.get('margin') or 10 }}"></label></p>
+    <p class="field"><label>Safety margin (%)
+            <input type="number" name="margin" min="0" step="1" value="{{ form.get('margin') or 10 }}"></label></p>
 
-        <button type="submit">Check</button>
-    </form>
+    <button class="btn" type="submit">Check</button>
+</form>
 
-    {% if result %}
-    <h2>Result</h2>
-    <p>This print needs about <strong>{{ result.needed_g }} g</strong>.
-        Your {{ result.spool.brand }} {{ result.spool.color }} {{ result.spool.material }}
-        has <strong>{{ result.spool.remaining_g }} g</strong> left.</p>
-
+{% if result %}
+<section class="card result-{{ result.status }}">
     {% if result.status == "enough" %}
-    <p><strong>Enough.</strong> You'll have about {{ result.left_after_g }} g left after this print.</p>
+    <h2>Enough</h2>
+    <p>You'll have about {{ result.left_after_g }} g left after this print.</p>
     {% elif result.status == "tight" %}
-    <p><strong>Tight.</strong> It should finish, but you'll only have about {{ result.left_after_g }} g to spare,
+    <h2>Tight</h2>
+    <p>It should finish, but you'll only have about {{ result.left_after_g }} g to spare,
         which is under your {{ result.margin_pct | int }}% safety margin.</p>
     {% else %}
-    <p><strong>Not enough.</strong> You're short about {{ result.shortfall_g }} g.
+    <h2>Not enough</h2>
+    <p>You're short about {{ result.shortfall_g }} g.
         {% if result.spool.backup_brand %}Your backup brand is {{ result.spool.backup_brand }}.{% endif %}</p>
     {% endif %}
+
+    <p class="muted small">This print needs about {{ result.needed_g }} g. Your {{ result.spool.brand }}
+        {{ result.spool.color }} {{ result.spool.material }} has {{ result.spool.remaining_g }} g left.</p>
+
     {% if result.status != "not_enough" %}
     <form method="post" action="{{ url_for('use_filament', spool_id=result.spool.id) }}">
         <input type="hidden" name="grams_used" value="{{ result.needed_g }}">
-        <button type="submit">Print finished: subtract {{ result.needed_g }} g</button>
+        <button class="btn" type="submit">Print finished: subtract {{ result.needed_g }} g</button>
     </form>
     {% endif %}
-    {% endif %}
-</body>
-
-</html>
+</section>
+{% endif %}
+{% endblock %}

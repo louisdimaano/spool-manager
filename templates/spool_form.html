@@ -1,99 +1,91 @@
-<!doctype html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ heading }} | SpoolManager</title>
-</head>
+{% block title %}{{ heading }} | SpoolManager{% endblock %}
 
-<body>
-    <h1>{{ heading }}</h1>
+{% block content %}
+<h1>{{ heading }}</h1>
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+{% if errors %}
+<div class="errors">
+    {% for error in errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
 
-    {% if errors %}
-    <ul>
-        {% for error in errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-
-    <form method="post">
-        <p><label>Brand<br>
+<form method="post" class="card">
+    <div class="row">
+        <p class="field"><label>Brand
                 <input name="brand" value="{{ form.get('brand') or '' }}" required></label></p>
-
-        <p><label>Material<br>
+        <p class="field"><label>Material
                 <select name="material" required>
                     {% for m in materials %}
                     <option value="{{ m }}" {% if form.get('material')==m %}selected{% endif %}>{{ m }}</option>
                     {% endfor %}
                 </select></label></p>
+    </div>
 
-        <p><label>Color<br>
+    <div class="row">
+        <p class="field"><label>Color
                 <input name="color" value="{{ form.get('color') or '' }}" required></label></p>
-
-        <p><label>Spool size (g)<br>
+        <p class="field"><label>Spool size (g)
                 <input type="number" name="total_g" min="1" step="1" value="{{ form.get('total_g') or 1000 }}"></label>
         </p>
+    </div>
 
-        <p><label>Grams left<br>
-                <input type="number" name="remaining_g" min="0" step="1" value="{{ form.get('remaining_g') or '' }}"
-                    placeholder="Leave blank if new"></label></p>
-
-        <p><label>Empty spool weight (g)<br>
+    <div class="row">
+        <p class="field"><label>Grams left
+                <input type="number" name="remaining_g" min="0" step="1" value="{{ form.get('remaining_g') or '' }}" {%
+                    if spool_id %}required{% else %}placeholder="Leave blank if new" {% endif %}></label></p>
+        <p class="field"><label>Empty spool weight (g)
                 <input type="number" name="empty_spool_g" min="0" step="1" value="{{ form.get('empty_spool_g') or '' }}"
-                    placeholder="Weigh an empty spool of this brand"></label></p>
+                    placeholder="Weigh an empty spool"></label></p>
+    </div>
 
-        <p><label>Cost ($)<br>
+    <div class="row">
+        <p class="field"><label>Cost ($)
                 <input type="number" name="cost" min="0" step="0.01" value="{{ form.get('cost') or '' }}"></label></p>
-
-        <p><label>CFS slot<br>
+        <p class="field"><label>CFS slot
                 <input name="cfs_slot" value="{{ form.get('cfs_slot') or '' }}" placeholder="e.g. 1A"></label></p>
+    </div>
 
-        <p><label><input type="checkbox" name="in_dry_box" {% if form.get('in_dry_box') %}checked{% endif %}>
-                In dry box</label></p>
+    <p class="field"><label>Backup brand
+            <input name="backup_brand" value="{{ form.get('backup_brand') or '' }}"></label></p>
 
-        <p><label>Backup brand<br>
-                <input name="backup_brand" value="{{ form.get('backup_brand') or '' }}"></label></p>
+    <p class="field"><label><input type="checkbox" name="in_dry_box" {% if form.get('in_dry_box') %}checked{% endif %}>
+            In dry box</label></p>
 
-        <p><label>Notes<br>
-                <textarea name="notes">{{ form.get('notes') or '' }}</textarea></label></p>
+    <p class="field"><label>Notes
+            <textarea name="notes">{{ form.get('notes') or '' }}</textarea></label></p>
 
-        <button type="submit">Save spool</button>
-        <a href="{{ url_for('spool_list') }}">Cancel</a>
-    </form>
+    <div class="form-actions">
+        <button class="btn" type="submit">Save spool</button>
+        <a class="btn btn-secondary" href="{{ url_for('spool_list') }}">Cancel</a>
+    </div>
+</form>
 
-    {% if spool_id %}
-    <h2>Update from scale</h2>
-    <form method="post" action="{{ url_for('weigh_spool', spool_id=spool_id) }}">
-        <p><label>Scale reading, spool included (g)<br>
+{% if spool_id %}
+<div class="tools">
+    <form method="post" action="{{ url_for('weigh_spool', spool_id=spool_id) }}" class="card">
+        <h2>Update from scale</h2>
+        <p class="field"><label>Scale reading, spool included (g)
                 <input type="number" name="scale_g" min="0" step="1" required></label></p>
-        <button type="submit">Update grams left</button>
+        <button class="btn" type="submit">Update grams left</button>
     </form>
 
-    <h2>Log a print</h2>
-    <form method="post" action="{{ url_for('use_filament', spool_id=spool_id) }}">
-        <p><label>Grams used<br>
+    <form method="post" action="{{ url_for('use_filament', spool_id=spool_id) }}" class="card">
+        <h2>Log a print</h2>
+        <p class="field"><label>Grams used
                 <input type="number" name="grams_used" min="1" step="any" required></label></p>
-        <button type="submit">Subtract</button>
+        <button class="btn" type="submit">Subtract</button>
     </form>
+</div>
 
+<form method="post" action="{{ url_for('delete_spool', spool_id=spool_id) }}" class="card"
+    onsubmit="return confirm('Delete this spool and its print history? This cannot be undone.');">
     <h2>Delete</h2>
-    <form method="post" action="{{ url_for('delete_spool', spool_id=spool_id) }}"
-        onsubmit="return confirm('Delete this spool and its print history? This cannot be undone.');">
-        <button type="submit">Delete spool</button>
-    </form>
-    {% endif %}
-</body>
-
-</html>
+    <p class="muted small">Removes the spool and its print history.</p>
+    <button class="btn btn-danger" type="submit">Delete spool</button>
+</form>
+{% endif %}
+{% endblock %}
