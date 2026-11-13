@@ -101,10 +101,11 @@ The database is stored in `./data`, outside the container, so it survives rebuil
 - Running a Python app in Docker with a volume so the data lives outside the container
 - Reading Python tracebacks to find the exact line and cause of an error
 - Writing automated tests with pytest, which caught a floating point rounding bug at the safety margin boundary
+- Share my in-stock colors with my 3D print order form
 
 ## Roadmap
 
 - Scan the barcode on a filament box with my phone, and remember barcodes so repeat purchases fill in the form automatically
 - A page that shows print history and filament used over time
 - A login, before it's ever reachable outside my home network
-- Share my in-stock colors with my 3D print order form
+
