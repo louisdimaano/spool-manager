@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, abort
 from db import get_db, init_db
+from filament import meters_to_grams, check_print
 
 app = Flask(__name__)
 init_db()
@@ -116,6 +117,49 @@ def delete_spool(spool_id):
     conn.close()
     return redirect(url_for("spool_list"))
 
+@app.route("/check", methods=["GET", "POST"])
+def check():
+    conn = get_db()
+    spools = conn.execute("SELECT * FROM spools ORDER BY material, color").fetchall()
+    conn.close()
+
+    form = request.form if request.method == "POST" else {}
+    errors = []
+    result = None
+
+    if request.method == "POST":
+        try:
+            spool_id = int(form.get("spool_id", ""))
+            amount = float(form.get("amount", ""))
+            margin_pct = float(form.get("margin") or 10)
+        except ValueError:
+            errors.append("Pick a spool and enter a number for the amount.")
+        else:
+            spool = None
+            for s in spools:
+                if s["id"] == spool_id:
+                    spool = s
+
+            if spool is None:
+                errors.append("That spool doesn't exist.")
+            elif amount <= 0 or margin_pct < 0:
+                errors.append("The amount must be more than 0, and the margin can't be negative.")
+            else:
+                if form.get("unit") == "m":
+                    needed_g = meters_to_grams(amount, spool["material"])
+                else:
+                    needed_g = amount
+
+                result = {
+                    "spool": spool,
+                    "needed_g": round(needed_g),
+                    "left_after_g": round(spool["remaining_g"] - needed_g),
+                    "shortfall_g": round(needed_g - spool["remaining_g"]),
+                    "margin_pct": margin_pct,
+                    "status": check_print(needed_g, spool["remaining_g"], margin_pct / 100),
+                }
+
+    return render_template("check.html", spools=spools, form=form, errors=errors, result=result)
 
 if __name__ == "__main__":
     app.run(debug=True)

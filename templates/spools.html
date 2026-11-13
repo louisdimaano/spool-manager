@@ -10,6 +10,7 @@
 <body>
     <h1>My Spools</h1>
     <p><a href="{{ url_for('add_spool') }}">+ Add spool</a></p>
+    <p><a href="{{ url_for('check') }}">Can I print this?</a></p>
 
     {% if spools %}
     <table>
