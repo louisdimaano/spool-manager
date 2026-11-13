@@ -1,9 +1,9 @@
+import os
 import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-DB_PATH = BASE_DIR / "spools.db"
-
+DB_PATH = Path(os.environ.get("DATABASE_PATH", BASE_DIR / "spools.db"))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)

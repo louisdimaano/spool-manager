@@ -1,0 +1,11 @@
+services:
+  spoolmanager:
+    build: .
+    container_name: spoolmanager
+    ports:
+      - "5000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
