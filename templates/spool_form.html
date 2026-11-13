@@ -26,31 +26,63 @@
     </div>
 
     <div class="row">
-        <p class="field"><label>Color
-                <input name="color" value="{{ form.get('color') or '' }}" required></label></p>
+        <p class="field"><label>Color name
+                <input name="color" value="{{ form.get('color') or '' }}" required
+                    placeholder="e.g. Silk Gold, Galaxy Black"></label></p>
+        <p class="field"><label>Number of colors
+                <select name="color_count">
+                    {% for n in ['1', '2', '3'] %}
+                    <option value="{{ n }}" {% if (form.get('color_count') or '1' )==n %}selected{% endif %}>{{ n }}
+                    </option>
+                    {% endfor %}
+                </select></label></p>
+    </div>
+
+    <div class="row three">
+        <p class="field"><label>Color 1
+                <input type="color" name="color_hex" value="{{ form.get('color_hex') or '#ffffff' }}"></label></p>
+        <p class="field"><label>Color 2
+                <input type="color" name="color_hex_2" value="{{ form.get('color_hex_2') or '#000000' }}"></label></p>
+        <p class="field"><label>Color 3
+                <input type="color" name="color_hex_3" value="{{ form.get('color_hex_3') or '#888888' }}"></label></p>
+    </div>
+
+    <div class="row">
+        <p class="field"><label>Multi-color style
+                <select name="color_style">
+                    <option value="split" {% if form.get('color_style') !='gradient' %}selected{% endif %}>Split (dual
+                        or tri color)</option>
+                    <option value="gradient" {% if form.get('color_style')=='gradient' %}selected{% endif %}>Gradient
+                        (changes along the spool)</option>
+                </select></label></p>
+        <p class="field checkbox-field"><label><input type="checkbox" name="is_translucent" {% if
+                    form.get('is_translucent') %}checked{% endif %}> Translucent</label></p>
+    </div>
+    <p class="muted small">Colors 2 and 3 and the style only count when Number of colors is 2 or 3.</p>
+
+    <div class="row">
         <p class="field"><label>Spool size (g)
                 <input type="number" name="total_g" min="1" step="1" value="{{ form.get('total_g') or 1000 }}"></label>
         </p>
-    </div>
-
-    <div class="row">
         <p class="field"><label>Grams left
                 <input type="number" name="remaining_g" min="0" step="1" value="{{ form.get('remaining_g') or '' }}" {%
                     if spool_id %}required{% else %}placeholder="Leave blank if new" {% endif %}></label></p>
-        <p class="field"><label>Empty spool weight (g)
-                <input type="number" name="empty_spool_g" min="0" step="1" value="{{ form.get('empty_spool_g') or '' }}"
-                    placeholder="Weigh an empty spool"></label></p>
     </div>
 
     <div class="row">
+        <p class="field"><label>Empty spool weight (g)
+                <input type="number" name="empty_spool_g" min="0" step="1" value="{{ form.get('empty_spool_g') or '' }}"
+                    placeholder="Weigh an empty spool"></label></p>
         <p class="field"><label>Cost ($)
                 <input type="number" name="cost" min="0" step="0.01" value="{{ form.get('cost') or '' }}"></label></p>
-        <p class="field"><label>CFS slot
-                <input name="cfs_slot" value="{{ form.get('cfs_slot') or '' }}" placeholder="e.g. 1A"></label></p>
     </div>
 
-    <p class="field"><label>Backup brand
-            <input name="backup_brand" value="{{ form.get('backup_brand') or '' }}"></label></p>
+    <div class="row">
+        <p class="field"><label>CFS slot
+                <input name="cfs_slot" value="{{ form.get('cfs_slot') or '' }}" placeholder="e.g. 1A"></label></p>
+        <p class="field"><label>Backup brand
+                <input name="backup_brand" value="{{ form.get('backup_brand') or '' }}"></label></p>
+    </div>
 
     <p class="field"><label><input type="checkbox" name="in_dry_box" {% if form.get('in_dry_box') %}checked{% endif %}>
             In dry box</label></p>
@@ -88,4 +120,21 @@
     <button class="btn btn-danger" type="submit">Delete spool</button>
 </form>
 {% endif %}
+
+<script>
+    const countSelect = document.querySelector('select[name="color_count"]');
+    const color2Field = document.querySelector('input[name="color_hex_2"]').closest('.field');
+    const color3Field = document.querySelector('input[name="color_hex_3"]').closest('.field');
+    const styleField = document.querySelector('select[name="color_style"]').closest('.field');
+
+    function updateColorFields() {
+        const count = Number(countSelect.value);
+        color2Field.hidden = count < 2;
+        color3Field.hidden = count < 3;
+        styleField.hidden = count < 2;
+    }
+
+    countSelect.addEventListener('change', updateColorFields);
+    updateColorFields();
+</script>
 {% endblock %}

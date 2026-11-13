@@ -7,28 +7,37 @@
 <div class="spool-grid">
     {% for spool in spools %}
     {% set pct = (spool.remaining_g / spool.total_g * 100) | round | int %}
-    {% set low = spool.remaining_g < low_stock_g %} <article class="card spool-card{% if low %} is-low{% endif %}">
-        <h2>{{ spool.color }} {{ spool.material }}</h2>
-        <p class="muted">{{ spool.brand }}</p>
+    {% set low = spool.remaining_g < low_stock_g %} <article class="spool-card{% if low %} is-low{% endif %}"
+        style="background: {{ spool | swatch }};">
+        <div class="spool-label">
+            <div class="spool-top">
+                <h2 class="spool-brand">
+                    {{ spool.brand }}
+                    {% if spool.backup_brand %}<span class="backup">Backup: {{ spool.backup_brand }}</span>{% endif %}
+                </h2>
+                <div class="tags">
+                    <span class="tag">{{ spool.material }}</span>
+                    {% if spool.is_translucent %}<span class="tag">TRANSLUCENT</span>{% endif %}
+                </div>
+            </div>
+            <p class="spool-color">{{ spool.color }}</p>
 
-        <div class="meter" role="img" aria-label="{{ pct }} percent left">
-            <div class="meter-fill" style="width: {{ pct }}%"></div>
+            <div class="meter" role="img" aria-label="{{ pct }} percent left">
+                <div class="meter-fill" style="width: {{ pct }}%"></div>
+            </div>
+            <p><strong>{{ spool.remaining_g }} g</strong> left ({{ pct }}%)
+                {% if low %}<span class="badge">LOW</span>{% endif %}</p>
+
+            {% if spool.cfs_slot or spool.in_dry_box %}
+            <p class="muted small">
+                {% if spool.cfs_slot %}CFS slot {{ spool.cfs_slot }}{% endif %}
+                {% if spool.cfs_slot and spool.in_dry_box %} | {% endif %}
+                {% if spool.in_dry_box %}In dry box{% endif %}
+            </p>
+            {% endif %}
+
+            <a class="btn btn-secondary" href="{{ url_for('edit_spool', spool_id=spool.id) }}">Edit</a>
         </div>
-        <p><strong>{{ spool.remaining_g }} g</strong> left ({{ pct }}%)</p>
-
-        {% if low %}
-        <p class="badge">Low{% if spool.backup_brand %}: backup is {{ spool.backup_brand }}{% endif %}</p>
-        {% endif %}
-
-        {% if spool.cfs_slot or spool.in_dry_box %}
-        <p class="muted small">
-            {% if spool.cfs_slot %}CFS slot {{ spool.cfs_slot }}{% endif %}
-            {% if spool.cfs_slot and spool.in_dry_box %} | {% endif %}
-            {% if spool.in_dry_box %}In dry box{% endif %}
-        </p>
-        {% endif %}
-
-        <a class="btn btn-secondary" href="{{ url_for('edit_spool', spool_id=spool.id) }}">Edit</a>
         </article>
         {% endfor %}
 </div>

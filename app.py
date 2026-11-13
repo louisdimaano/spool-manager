@@ -1,3 +1,4 @@
+import re
 import os
 
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
@@ -11,6 +12,33 @@ init_db()
 
 MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU", "Other"]
 LOW_STOCK_G = 150
+HEX_COLOR = re.compile(r"#[0-9a-fA-F]{6}")
+CHECKERBOARD = "repeating-conic-gradient(#d9d9d9 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px"
+
+
+@app.template_filter("swatch")
+def swatch(spool):
+    """Build the CSS background that shows a spool's color(s)."""
+    colors = [c for c in (spool["color_hex"], spool["color_hex_2"], spool["color_hex_3"]) if c]
+    if not colors:
+        return "var(--border)"
+    if spool["is_translucent"]:
+        colors = [c + "99" for c in colors]
+
+    if len(colors) == 1:
+        layer = f"linear-gradient({colors[0]}, {colors[0]})"
+    elif spool["color_style"] == "gradient":
+        layer = f"linear-gradient(135deg, {', '.join(colors)})"
+    else:
+        step = 100 / len(colors)
+        stops = ", ".join(
+            f"{c} {i * step:.0f}% {(i + 1) * step:.0f}%" for i, c in enumerate(colors)
+        )
+        layer = f"linear-gradient(135deg, {stops})"
+
+    if spool["is_translucent"]:
+        return f"{layer}, {CHECKERBOARD}"
+    return layer
 
 
 def get_spool_or_404(conn, spool_id):
@@ -32,6 +60,25 @@ def read_spool_form(form):
     if not (brand and material and color):
         errors.append("Brand, material, and color are required.")
 
+    color_count = form.get("color_count", "1")
+    if color_count not in ("1", "2", "3"):
+        errors.append("Pick 1, 2, or 3 colors.")
+        color_count = "1"
+
+    color_style = form.get("color_style", "split")
+    if color_style not in ("split", "gradient"):
+        errors.append("Pick a valid multi-color style.")
+        color_style = "split"
+
+    hexes = []
+    for name in ("color_hex", "color_hex_2", "color_hex_3")[: int(color_count)]:
+        value = form.get(name, "").strip()
+        if not HEX_COLOR.fullmatch(value):
+            errors.append("Pick a valid color for each color slot.")
+            value = None
+        hexes.append(value)
+    hexes += [None] * (3 - len(hexes))
+
     total_g = remaining_g = empty_spool_g = cost = None
     try:
         total_g = int(form.get("total_g") or 1000)
@@ -50,6 +97,11 @@ def read_spool_form(form):
         "brand": brand,
         "material": material,
         "color": color,
+        "color_hex": hexes[0],
+        "color_hex_2": hexes[1],
+        "color_hex_3": hexes[2],
+        "color_style": color_style,
+        "is_translucent": 1 if form.get("is_translucent") else 0,
         "total_g": total_g,
         "remaining_g": remaining_g,
         "empty_spool_g": empty_spool_g,
@@ -83,9 +135,11 @@ def add_spool():
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO spools (brand, material, color, total_g, remaining_g, empty_spool_g, cost, "
-        "cfs_slot, in_dry_box, backup_brand, notes) VALUES (:brand, :material, :color, "
-        ":total_g, :remaining_g, :empty_spool_g, :cost, :cfs_slot, :in_dry_box, :backup_brand, :notes)",
+        "INSERT INTO spools (brand, material, color, color_hex, color_hex_2, color_hex_3, "
+        "color_style, is_translucent, total_g, remaining_g, empty_spool_g, cost, cfs_slot, "
+        "in_dry_box, backup_brand, notes) VALUES (:brand, :material, :color, :color_hex, "
+        ":color_hex_2, :color_hex_3, :color_style, :is_translucent, :total_g, :remaining_g, "
+        ":empty_spool_g, :cost, :cfs_slot, :in_dry_box, :backup_brand, :notes)",
         values,
     )
     conn.commit()
@@ -100,8 +154,10 @@ def edit_spool(spool_id):
 
     if request.method == "GET":
         conn.close()
+        form = dict(spool)
+        form["color_count"] = str(1 + bool(spool["color_hex_2"]) + bool(spool["color_hex_3"]))
         return render_template("spool_form.html", heading="Edit Spool", spool_id=spool_id,
-                               errors=[], form=dict(spool), materials=MATERIALS)
+                               errors=[], form=form, materials=MATERIALS)
 
     values, errors = read_spool_form(request.form)
     if errors:
@@ -112,9 +168,11 @@ def edit_spool(spool_id):
     values["id"] = spool_id
     conn.execute(
         "UPDATE spools SET brand = :brand, material = :material, color = :color, "
-        "total_g = :total_g, remaining_g = :remaining_g, empty_spool_g = :empty_spool_g, "
-        "cost = :cost, cfs_slot = :cfs_slot, in_dry_box = :in_dry_box, "
-        "backup_brand = :backup_brand, notes = :notes WHERE id = :id",
+        "color_hex = :color_hex, color_hex_2 = :color_hex_2, color_hex_3 = :color_hex_3, "
+        "color_style = :color_style, is_translucent = :is_translucent, total_g = :total_g, "
+        "remaining_g = :remaining_g, empty_spool_g = :empty_spool_g, cost = :cost, "
+        "cfs_slot = :cfs_slot, in_dry_box = :in_dry_box, backup_brand = :backup_brand, "
+        "notes = :notes WHERE id = :id",
         values,
     )
     conn.commit()
