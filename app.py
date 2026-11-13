@@ -1,3 +1,4 @@
+import math
 import re
 import os
 
@@ -88,7 +89,9 @@ def read_spool_form(form):
     except ValueError:
         errors.append("Weights must be whole numbers, and cost must be a number.")
     else:
-        if total_g <= 0 or remaining_g < 0 or (empty_spool_g is not None and empty_spool_g < 0):
+        if cost is not None and not math.isfinite(cost):
+            errors.append("Cost must be a real number.")
+        elif total_g <= 0 or remaining_g < 0 or (empty_spool_g is not None and empty_spool_g < 0):
             errors.append("Weights can't be negative.")
         elif remaining_g > total_g:
             errors.append("Grams left can't be more than the spool's total.")
@@ -220,9 +223,10 @@ def use_filament(spool_id):
     spool = get_spool_or_404(conn, spool_id)
 
     try:
-        grams_used = round(float(request.form.get("grams_used", "")))
+        value = float(request.form.get("grams_used", ""))
     except ValueError:
-        grams_used = 0
+        value = 0
+    grams_used = round(value) if math.isfinite(value) else 0
     if grams_used <= 0:
         conn.close()
         flash("Enter the grams used as a number more than 0.")
@@ -260,8 +264,11 @@ def check():
                 if s["id"] == spool_id:
                     spool = s
 
+            
             if spool is None:
                 errors.append("That spool doesn't exist.")
+            elif not (math.isfinite(amount) and math.isfinite(margin_pct)):
+                errors.append("Enter real numbers for the amount and margin.")
             elif amount <= 0 or margin_pct < 0:
                 errors.append("The amount must be more than 0, and the margin can't be negative.")
             else:
