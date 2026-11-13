@@ -18,6 +18,7 @@ NEW_COLUMNS = {
     "color_hex_3": "TEXT",
     "color_style": "TEXT NOT NULL DEFAULT 'split'",
     "is_translucent": "INTEGER NOT NULL DEFAULT 0",
+    "finish": "TEXT NOT NULL DEFAULT 'Basic'",
 }
 
 

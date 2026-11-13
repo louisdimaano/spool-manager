@@ -14,13 +14,19 @@
 {% endif %}
 
 <form method="post" class="card">
-    <div class="row">
+    <div class="row three">
         <p class="field"><label>Brand
                 <input name="brand" value="{{ form.get('brand') or '' }}" required></label></p>
         <p class="field"><label>Material
                 <select name="material" required>
                     {% for m in materials %}
                     <option value="{{ m }}" {% if form.get('material')==m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select></label></p>
+        <p class="field"><label>Finish
+                <select name="finish" required>
+                    {% for f in finishes %}
+                    <option value="{{ f }}" {% if form.get('finish')==f %}selected{% endif %}>{{ f }}</option>
                     {% endfor %}
                 </select></label></p>
     </div>

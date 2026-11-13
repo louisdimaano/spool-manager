@@ -18,6 +18,7 @@
                 </h2>
                 <div class="tags">
                     <span class="tag">{{ spool.material }}</span>
+                    {% if spool.finish != 'Basic' %}<span class="tag">{{ spool.finish | upper }}</span>{% endif %}
                     {% if spool.is_translucent %}<span class="tag">TRANSLUCENT</span>{% endif %}
                 </div>
             </div>

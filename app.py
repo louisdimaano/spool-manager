@@ -15,6 +15,7 @@ app.jinja_env.globals["stock_level"] = stock_level
 
 
 MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU", "Other"]
+FINISHES = ["Basic", "Matte", "Silk", "Glow", "Sparkle", "Marble", "Wood"]
 LOW_STOCK_G = 150
 HEX_COLOR = re.compile(r"#[0-9a-fA-F]{6}")
 CHECKERBOARD = "repeating-conic-gradient(#d9d9d9 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px"
@@ -63,7 +64,10 @@ def read_spool_form(form):
     color = form.get("color", "").strip()
     if not (brand and material and color):
         errors.append("Brand, material, and color are required.")
-
+    finish = form.get("finish", "Basic")
+    if finish not in FINISHES:
+        errors.append("Pick a valid finish.")
+        finish = "Basic"
     color_count = form.get("color_count", "1")
     if color_count not in ("1", "2", "3"):
         errors.append("Pick 1, 2, or 3 colors.")
@@ -116,6 +120,9 @@ def read_spool_form(form):
         "in_dry_box": 1 if form.get("in_dry_box") else 0,
         "backup_brand": form.get("backup_brand", "").strip() or None,
         "notes": form.get("notes", "").strip() or None,
+        "material": material,
+        "finish": finish,
+        "color": color,
     }
     return values, errors
 
@@ -132,18 +139,18 @@ def spool_list():
 def add_spool():
     if request.method == "GET":
         return render_template("spool_form.html", heading="Add a Spool",
-                               errors=[], form={}, materials=MATERIALS)
+                               errors=[], form={}, materials=MATERIALS, finishes=FINISHES)
 
     values, errors = read_spool_form(request.form)
     if errors:
         return render_template("spool_form.html", heading="Add a Spool",
-                               errors=errors, form=request.form, materials=MATERIALS)
+                               errors=errors, form=request.form, materials=MATERIALS, finishes=FINISHES)
 
     conn = get_db()
     conn.execute(
-        "INSERT INTO spools (brand, material, color, color_hex, color_hex_2, color_hex_3, "
+        "INSERT INTO spools (brand, material, finish, color, color_hex, color_hex_2, color_hex_3, "
         "color_style, is_translucent, total_g, remaining_g, empty_spool_g, cost, cfs_slot, "
-        "in_dry_box, backup_brand, notes) VALUES (:brand, :material, :color, :color_hex, "
+        "in_dry_box, backup_brand, notes) VALUES (:brand, :material, :finish, :color, :color_hex, "
         ":color_hex_2, :color_hex_3, :color_style, :is_translucent, :total_g, :remaining_g, "
         ":empty_spool_g, :cost, :cfs_slot, :in_dry_box, :backup_brand, :notes)",
         values,
@@ -163,17 +170,17 @@ def edit_spool(spool_id):
         form = dict(spool)
         form["color_count"] = str(1 + bool(spool["color_hex_2"]) + bool(spool["color_hex_3"]))
         return render_template("spool_form.html", heading="Edit Spool", spool_id=spool_id,
-                               errors=[], form=form, materials=MATERIALS)
+                               errors=[], form=form, materials=MATERIALS, finishes=FINISHES)
 
     values, errors = read_spool_form(request.form)
     if errors:
         conn.close()
         return render_template("spool_form.html", heading="Edit Spool", spool_id=spool_id,
-                               errors=errors, form=request.form, materials=MATERIALS)
+                               errors=errors, form=request.form, materials=MATERIALS, finishes=FINISHES)
 
     values["id"] = spool_id
     conn.execute(
-        "UPDATE spools SET brand = :brand, material = :material, color = :color, "
+        "UPDATE spools SET brand = :brand, material = :material, finish = :finish, color = :color, "
         "color_hex = :color_hex, color_hex_2 = :color_hex_2, color_hex_3 = :color_hex_3, "
         "color_style = :color_style, is_translucent = :is_translucent, total_g = :total_g, "
         "remaining_g = :remaining_g, empty_spool_g = :empty_spool_g, cost = :cost, "
@@ -295,18 +302,19 @@ def check():
 def export_colors():
     conn = get_db()
     spools = conn.execute(
-        "SELECT * FROM spools WHERE remaining_g > 0 ORDER BY material, color"
+        "SELECT * FROM spools WHERE remaining_g > 0 ORDER BY material, finish, color"
     ).fetchall()
     conn.close()
 
     groups = {}
     for s in spools:
         colors = [c for c in (s["color_hex"], s["color_hex_2"], s["color_hex_3"]) if c]
-        key = (s["material"], s["color"].strip().lower(), tuple(colors),
+        key = (s["material"], s["finish"], s["color"].strip().lower(), tuple(colors),
                s["color_style"], s["is_translucent"])
         if key not in groups:
             groups[key] = {
                 "material": s["material"],
+                "finish": s["finish"],
                 "color": s["color"],
                 "hex": colors,
                 "style": s["color_style"] if len(colors) > 1 else "solid",

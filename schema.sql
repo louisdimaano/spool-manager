@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS spools (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     brand TEXT NOT NULL,
     material TEXT NOT NULL,
+    finish TEXT NOT NULL DEFAULT 'Basic',
     color TEXT NOT NULL,
     color_hex TEXT,
     color_hex_2 TEXT,
