@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SpoolManager</title>
+</head>
+
+<body>
+    <h1>My Spools</h1>
+
+    {% if spools %}
+    <table>
+        <thead>
+            <tr>
+                <th>Brand</th>
+                <th>Material</th>
+                <th>Color</th>
+                <th>Left</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for spool in spools %}
+            <tr>
+                <td>{{ spool.brand }}</td>
+                <td>{{ spool.material }}</td>
+                <td>{{ spool.color }}</td>
+                <td>{{ spool.remaining_g }} g ({{ (spool.remaining_g / spool.total_g * 100) | round | int }}%)</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No spools yet.</p>
+    {% endif %}
+</body>
+
+</html>
