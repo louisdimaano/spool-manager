@@ -10,6 +10,16 @@
 <body>
     <h1>{{ heading }}</h1>
 
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
     {% if errors %}
     <ul>
         {% for error in errors %}
@@ -40,6 +50,10 @@
                 <input type="number" name="remaining_g" min="0" step="1" value="{{ form.get('remaining_g') or '' }}"
                     placeholder="Leave blank if new"></label></p>
 
+        <p><label>Empty spool weight (g)<br>
+                <input type="number" name="empty_spool_g" min="0" step="1" value="{{ form.get('empty_spool_g') or '' }}"
+                    placeholder="Weigh an empty spool of this brand"></label></p>
+
         <p><label>Cost ($)<br>
                 <input type="number" name="cost" min="0" step="0.01" value="{{ form.get('cost') or '' }}"></label></p>
 
@@ -60,8 +74,23 @@
     </form>
 
     {% if spool_id %}
+    <h2>Update from scale</h2>
+    <form method="post" action="{{ url_for('weigh_spool', spool_id=spool_id) }}">
+        <p><label>Scale reading, spool included (g)<br>
+                <input type="number" name="scale_g" min="0" step="1" required></label></p>
+        <button type="submit">Update grams left</button>
+    </form>
+
+    <h2>Log a print</h2>
+    <form method="post" action="{{ url_for('use_filament', spool_id=spool_id) }}">
+        <p><label>Grams used<br>
+                <input type="number" name="grams_used" min="1" step="any" required></label></p>
+        <button type="submit">Subtract</button>
+    </form>
+
+    <h2>Delete</h2>
     <form method="post" action="{{ url_for('delete_spool', spool_id=spool_id) }}"
-        onsubmit="return confirm('Delete this spool? This cannot be undone.');">
+        onsubmit="return confirm('Delete this spool and its print history? This cannot be undone.');">
         <button type="submit">Delete spool</button>
     </form>
     {% endif %}

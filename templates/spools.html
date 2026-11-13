@@ -9,6 +9,17 @@
 
 <body>
     <h1>My Spools</h1>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
     <p><a href="{{ url_for('add_spool') }}">+ Add spool</a></p>
     <p><a href="{{ url_for('check') }}">Can I print this?</a></p>
 
@@ -29,7 +40,12 @@
                 <td>{{ spool.brand }}</td>
                 <td>{{ spool.material }}</td>
                 <td>{{ spool.color }}</td>
-                <td>{{ spool.remaining_g }} g ({{ (spool.remaining_g / spool.total_g * 100) | round | int }}%)</td>
+                <td>
+                    {{ spool.remaining_g }} g ({{ (spool.remaining_g / spool.total_g * 100) | round | int }}%)
+                    {% if spool.remaining_g < low_stock_g %} <strong>Low</strong>{% if spool.backup_brand %} (backup: {{
+                        spool.backup_brand }}){% endif %}
+                        {% endif %}
+                </td>
                 <td><a href="{{ url_for('edit_spool', spool_id=spool.id) }}">Edit</a></td>
             </tr>
             {% endfor %}

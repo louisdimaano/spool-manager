@@ -59,6 +59,12 @@
     <p><strong>Not enough.</strong> You're short about {{ result.shortfall_g }} g.
         {% if result.spool.backup_brand %}Your backup brand is {{ result.spool.backup_brand }}.{% endif %}</p>
     {% endif %}
+    {% if result.status != "not_enough" %}
+    <form method="post" action="{{ url_for('use_filament', spool_id=result.spool.id) }}">
+        <input type="hidden" name="grams_used" value="{{ result.needed_g }}">
+        <button type="submit">Print finished: subtract {{ result.needed_g }} g</button>
+    </form>
+    {% endif %}
     {% endif %}
 </body>
 
