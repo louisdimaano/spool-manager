@@ -1,15 +1,18 @@
 import math
 import re
 import os
+from datetime import date
 
-from flask import Flask, render_template, request, redirect, url_for, abort, flash
+from flask import Flask, render_template, request, redirect, url_for, abort, flash, jsonify
 
 from db import get_db, init_db
-from filament import meters_to_grams, check_print
+from filament import meters_to_grams, check_print, stock_level
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-not-secret")
 init_db()
+app.jinja_env.globals["stock_level"] = stock_level
+
 
 MATERIALS = ["PLA", "PETG", "ABS", "ASA", "TPU", "Other"]
 LOW_STOCK_G = 150
@@ -288,6 +291,38 @@ def check():
 
     return render_template("check.html", spools=spools, form=form, errors=errors, result=result)
 
+@app.route("/export/colors.json")
+def export_colors():
+    conn = get_db()
+    spools = conn.execute(
+        "SELECT * FROM spools WHERE remaining_g > 0 ORDER BY material, color"
+    ).fetchall()
+    conn.close()
+
+    groups = {}
+    for s in spools:
+        colors = [c for c in (s["color_hex"], s["color_hex_2"], s["color_hex_3"]) if c]
+        key = (s["material"], s["color"].strip().lower(), tuple(colors),
+               s["color_style"], s["is_translucent"])
+        if key not in groups:
+            groups[key] = {
+                "material": s["material"],
+                "color": s["color"],
+                "hex": colors,
+                "style": s["color_style"] if len(colors) > 1 else "solid",
+                "translucent": bool(s["is_translucent"]),
+                "grams": 0,
+            }
+        groups[key]["grams"] += s["remaining_g"]
+
+    colors_out = []
+    for group in groups.values():
+        group["level"] = stock_level(group.pop("grams"))
+        colors_out.append(group)
+
+    response = jsonify({"updated": date.today().isoformat(), "colors": colors_out})
+    response.headers["Content-Disposition"] = "attachment; filename=colors.json"
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

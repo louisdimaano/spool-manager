@@ -8,6 +8,8 @@ DENSITY = {
     "ASA": 1.07,
     "TPU": 1.21,
 }
+PLENTY_G = 500
+LIMITED_G = 150
 DEFAULT_DENSITY = 1.24
 
 
@@ -26,3 +28,15 @@ def check_print(needed_g, remaining_g, margin=0.10):
     if remaining_g >= needed_g:
         return "tight"
     return "not_enough"
+
+    PLENTY_G = 500
+LIMITED_G = 150
+
+
+def stock_level(grams):
+    """Turn grams into a level customers understand."""
+    if grams >= PLENTY_G:
+        return "plenty"
+    if grams >= LIMITED_G:
+        return "limited"
+    return "low"
