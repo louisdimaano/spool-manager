@@ -380,3 +380,40 @@ textarea:focus {
     background: var(--danger-light);
     border-color: var(--danger);
 }
+
+/* Login pages */
+.narrow {
+    max-width: 420px;
+}
+
+.logout-form {
+    display: inline;
+}
+
+.logout-form button {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.logout-form button:hover {
+    border-color: var(--danger);
+}
+
+.recovery-code {
+    margin: 16px 0;
+    padding: 12px;
+    text-align: center;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: var(--accent-light);
+    border-radius: 8px;
+}

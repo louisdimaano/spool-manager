@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Log in | SpoolManager{% endblock %}
+
+{% block content %}
+<h1>Log in</h1>
+
+{% if error %}
+<div class="errors">
+    <p>{{ error }}</p>
+</div>
+{% endif %}
+
+<form method="post" class="card narrow">
+    <p class="field"><label>Password
+            <input type="password" name="password" autocomplete="current-password" required autofocus></label></p>
+    <div class="form-actions">
+        <button class="btn" type="submit">Log in</button>
+    </div>
+</form>
+{% endblock %}

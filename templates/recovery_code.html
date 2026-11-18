@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Your recovery code | Spool Manager{% endblock %}
+
+{% block content %}
+<h1>Save your recovery code</h1>
+
+<div class="card narrow">
+    <p>If you ever forget your password, this code lets you set a new one. Save it in your password manager now. It
+        won't be shown again.</p>
+    <p class="recovery-code">{{ code }}</p>
+    <p class="muted small">Each code works once. Using it gives you a new one.</p>
+    <div class="form-actions">
+        <a class="btn" href="{{ url_for('spool_list') }}">I saved it</a>
+    </div>
+</div>
+{% endblock %}

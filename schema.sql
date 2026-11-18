@@ -27,3 +27,9 @@ CREATE TABLE IF NOT EXISTS prints (
     grams_used INTEGER NOT NULL,
     printed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    password_hash TEXT NOT NULL,
+    recovery_hash TEXT NOT NULL
+);

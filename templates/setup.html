@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Set a password | Spool Manager{% endblock %}
+
+{% block content %}
+<h1>Set a password</h1>
+
+{% if errors %}
+<div class="errors">
+    {% for error in errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="card narrow">
+    <p class="muted small">This is the only account, so pick something you'll remember. You'll stay logged in on each
+        device for 30 days.</p>
+    <p class="field"><label>Password
+            <input type="password" name="password" autocomplete="new-password" required minlength="8"></label></p>
+    <p class="field"><label>Type it again
+            <input type="password" name="confirm" autocomplete="new-password" required minlength="8"></label></p>
+    <div class="form-actions">
+        <button class="btn" type="submit">Set password</button>
+    </div>
+</form>
+{% endblock %}
