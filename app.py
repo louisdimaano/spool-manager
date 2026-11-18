@@ -126,6 +126,47 @@ def login():
     return redirect(url_for("spool_list"))
 
 
+@app.route("/forgot", methods=["GET", "POST"])
+def forgot():
+    user = saved_user()
+    if user is None:
+        return redirect(url_for("setup"))
+    if request.method == "GET":
+        return render_template("forgot.html", errors=[])
+
+    code = normalize_code(request.form.get("code", ""))
+    if not check_password_hash(user["recovery_hash"], code):
+        return render_template("forgot.html", errors=["Wrong recovery code."])
+
+    password, errors = read_new_password(request.form)
+    if errors:
+        return render_template("forgot.html", errors=errors)
+
+    new_code = save_password(password)
+    log_in()
+    return render_template("recovery_code.html", code=new_code)
+
+
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    if request.method == "GET":
+        return render_template("account.html", errors=[], changed=False)
+
+    user = saved_user()
+    if not check_password_hash(user["password_hash"], request.form.get("current", "")):
+        return render_template("account.html", errors=["Your current password is wrong."], changed=False)
+
+    password, errors = read_new_password(request.form)
+    if errors:
+        return render_template("account.html", errors=errors, changed=False)
+
+    conn = get_db()
+    conn.execute("UPDATE users SET password_hash = ?", (generate_password_hash(password),))
+    conn.commit()
+    conn.close()
+    return render_template("account.html", errors=[], changed=True)
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()

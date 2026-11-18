@@ -20,6 +20,8 @@
                 <a href="{{ url_for('check') }}" {% if request.endpoint=='check' %}aria-current="page" {% endif %}>Can I
                     print this?</a>
                 {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}" {% if request.endpoint=='account' %}aria-current="page" {% endif
+                    %}>Password</a>
                 <form method="post" action="{{ url_for('logout') }}" class="logout-form">
                     <button type="submit">Log out</button>
                 </form>

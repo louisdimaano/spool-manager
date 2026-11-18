@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Change password | SpoolManager{% endblock %}
+
+{% block content %}
+<h1>Change password</h1>
+
+{% if changed %}
+<div class="flash">
+    <p>Password changed. Your recovery code still works.</p>
+</div>
+{% endif %}
+
+{% if errors %}
+<div class="errors">
+    {% for error in errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="card narrow">
+    <p class="field"><label>Current password
+            <input type="password" name="current" autocomplete="current-password" required></label></p>
+    <p class="field"><label>New password
+            <input type="password" name="password" autocomplete="new-password" required minlength="8"></label></p>
+    <p class="field"><label>Type it again
+            <input type="password" name="confirm" autocomplete="new-password" required minlength="8"></label></p>
+    <div class="form-actions">
+        <button class="btn" type="submit">Change password</button>
+    </div>
+</form>
+{% endblock %}
