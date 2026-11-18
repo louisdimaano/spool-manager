@@ -187,7 +187,7 @@ def get_spool_or_404(conn, spool_id):
     return spool
 
 
-def read_spool_form(form):
+def read_spool_form(form, editing=False):
     """Check the form and return (values, errors)."""
     errors = []
 
@@ -196,6 +196,10 @@ def read_spool_form(form):
     color = form.get("color", "").strip()
     if not (brand and material and color):
         errors.append("Brand, material, and color are required.")
+    elif material not in MATERIALS:
+        errors.append("Pick a material from the list.")
+    if editing and not form.get("remaining_g", "").strip():
+        errors.append("Enter how many grams are left.")
     finish = form.get("finish", "Basic")
     if finish not in FINISHES:
         errors.append("Pick a valid finish.")
@@ -253,8 +257,8 @@ def read_spool_form(form):
         "backup_brand": form.get("backup_brand", "").strip() or None,
         "notes": form.get("notes", "").strip() or None,
         "material": material,
+        "notes": form.get("notes", "").strip() or None,
         "finish": finish,
-        "color": color,
     }
     return values, errors
 
@@ -304,7 +308,7 @@ def edit_spool(spool_id):
         return render_template("spool_form.html", heading="Edit Spool", spool_id=spool_id,
                                errors=[], form=form, materials=MATERIALS, finishes=FINISHES)
 
-    values, errors = read_spool_form(request.form)
+    values, errors = read_spool_form(request.form, editing=True)
     if errors:
         conn.close()
         return render_template("spool_form.html", heading="Edit Spool", spool_id=spool_id,
