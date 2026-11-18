@@ -12,6 +12,7 @@
 {% endif %}
 
 <form method="post" class="card narrow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p class="field"><label>Password
             <input type="password" name="password" autocomplete="current-password" required autofocus></label></p>
     <div class="form-actions">

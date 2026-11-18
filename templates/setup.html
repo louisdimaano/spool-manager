@@ -14,6 +14,7 @@
 {% endif %}
 
 <form method="post" class="card narrow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p class="muted small">This is the only account, so pick something you'll remember. You'll stay logged in on each
         device for 30 days.</p>
     <p class="field"><label>Password

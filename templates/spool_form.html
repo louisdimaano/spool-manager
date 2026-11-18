@@ -14,6 +14,7 @@
 {% endif %}
 
 <form method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row three">
         <p class="field"><label>Brand
                 <input name="brand" value="{{ form.get('brand') or '' }}" required></label></p>
@@ -105,6 +106,7 @@
 {% if spool_id %}
 <div class="tools">
     <form method="post" action="{{ url_for('weigh_spool', spool_id=spool_id) }}" class="card">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <h2>Update from scale</h2>
         <p class="field"><label>Scale reading, spool included (g)
                 <input type="number" name="scale_g" min="0" step="1" required></label></p>
@@ -112,6 +114,7 @@
     </form>
 
     <form method="post" action="{{ url_for('use_filament', spool_id=spool_id) }}" class="card">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <h2>Log a print</h2>
         <p class="field"><label>Grams used
                 <input type="number" name="grams_used" min="1" step="any" required></label></p>
@@ -121,6 +124,7 @@
 
 <form method="post" action="{{ url_for('delete_spool', spool_id=spool_id) }}" class="card"
     onsubmit="return confirm('Delete this spool and its print history? This cannot be undone.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <h2>Delete</h2>
     <p class="muted small">Removes the spool and its print history.</p>
     <button class="btn btn-danger" type="submit">Delete spool</button>

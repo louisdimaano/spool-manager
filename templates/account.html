@@ -20,6 +20,7 @@
 {% endif %}
 
 <form method="post" class="card narrow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p class="field"><label>Current password
             <input type="password" name="current" autocomplete="current-password" required></label></p>
     <p class="field"><label>New password

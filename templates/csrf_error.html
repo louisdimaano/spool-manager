@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Form expired | SpoolManager{% endblock %}
+
+{% block content %}
+<h1>That didn't go through</h1>
+<div class="card">
+    <p>The form was missing its security check, so nothing was changed. Go back, refresh the page, and try again.</p>
+</div>
+<a class="btn btn-secondary" href="{{ url_for('spool_list') }}">Back to spools</a>
+{% endblock %}
